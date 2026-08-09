@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Janji Servis | Dika Motor</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,300;0,400;0,700;1,700&display=swap"
+        rel="stylesheet">
+
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- Style -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        .jadwal-hero {
+            background: linear-gradient(135deg, rgba(24, 31, 42, 0.95), rgba(35, 43, 62, 0.95)), url('img/header-bg.jpg') center/cover no-repeat;
+            padding: 60px 7% 40px;
+            text-align: center;
+        }
+
+        .jadwal-hero h1 {
+            color: var(--text, #f3f4f6);
+            font-size: 2.4rem;
+            margin: 0 0 10px;
+        }
+
+        .jadwal-hero h1 span {
+            color: #fbbf24;
+        }
+
+        .jadwal-hero p {
+            color: #b0b8c1;
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+        .jadwal-container {
+            padding: 40px 7%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .jadwal-table-wrap {
+            background: #232b3e;
+            border-radius: 14px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+            overflow-x: auto;
+        }
+
+        .jadwal-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .jadwal-table th,
+        .jadwal-table td {
+            padding: 14px 16px;
+            text-align: center;
+            color: #f3f4f6;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 0.95rem;
+        }
+
+        .jadwal-table th {
+            background: #17689e;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .jadwal-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge.terjadwal { background: #22c55e; color: #fff; }
+        .badge.hari-ini { background: #fbbf24; color: #000; }
+        .badge.selesai { background: #6b7280; color: #fff; }
+        .badge.diproses { background: #278fcb; color: #fff; }
+        .badge.batal { background: #ef4444; color: #fff; }
+
+        .kosong {
+            text-align: center;
+            padding: 40px !important;
+            color: #b0b8c1;
+        }
+
+        #pagination {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        #pagination button {
+            background: #278fcb;
+            color: #fff;
+            padding: 6px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        #pagination button:hover {
+            background: #17689e;
+            transform: translateY(-2px);
+        }
+
+        #pagination button.active {
+            background: #fbbf24;
+            color: #000;
+            font-weight: 700;
+            transform: scale(1.1);
+        }
+
+        /* ===== Tombol & Modal Booking ===== */
+        .booking-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .booking-btn {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #000;
+            border: none;
+            padding: 11px 22px;
+            border-radius: 50px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(251, 191, 36, 0.35);
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+
+        .booking-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(251, 191, 36, 0.5);
+        }
+
+        .modal-booking {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 20, 32, 0.75);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-booking.active { display: flex; }
+
+        .modal-card {
+            background: #232b3e;
+            border-radius: 16px;
+            padding: 28px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.25s ease;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(24px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-card h2 {
+            color: #f3f4f6;
+            margin: 0 0 4px;
+            font-size: 1.35rem;
+        }
+
+        .modal-card h2 span { color: #fbbf24; }
+
+        .modal-card .modal-sub {
+            color: #b0b8c1;
+            margin: 0 0 20px;
+            font-size: 0.9rem;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #b0b8c1;
+            font-size: 1.3rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #fca5a5;
+            transform: rotate(90deg);
+        }
+
+        .booking-form label {
+            display: block;
+            color: #d1d5db;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 14px 0 6px;
+        }
+
+        .booking-form input,
+        .booking-form textarea {
+            width: 100%;
+            background: #181f2a;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 11px 14px;
+            color: #f3f4f6;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.92rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        .booking-form input:focus,
+        .booking-form textarea:focus {
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.15);
+        }
+
+        .booking-form textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .booking-form input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(0.7);
+            cursor: pointer;
+        }
+
+        .booking-form .msg {
+            display: none;
+            margin-top: 14px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+        }
+
+        .booking-form .msg.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .booking-form .msg.success {
+            display: block;
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .booking-form .btn-submit {
+            width: 100%;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #278fcb, #17689e);
+            color: #fff;
+            border: none;
+            padding: 13px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.3s;
+        }
+
+        .booking-form .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(39, 143, 203, 0.4);
+        }
+
+        .booking-form .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar start -->
+    <nav class="navbar">
+        <a href="index.html" class="navbar-logo">Dika<span>Motor</span></a>
+
+        <div class="navbar-nav">
+            <a href="index.html#home">Home</a>
+            <a href="index.html#about">Tentang Kami</a>
+            <a href="index.html#products">Produk</a>
+            <a href="janji-servis.html" class="active">Janji Servis</a>
+            <a href="index.html#contact">Kontak</a>
+            <a href="ai.html" class="nav-ai"><i data-feather="cpu"></i> AI Mekanik</a>
+        </div>
+
+        <div class="navbar-extra">
+            <a href="#" id="hamburger-menu"><i data-feather="menu"></i></a>
+        </div>
+    </nav>
+    <!-- Navbar end -->
+
+    <!-- Hero -->
+    <section class="jadwal-hero">
+        <h1>📅 Jadwal <span>Janji Servis</span></h1>
+        <p>Daftar pelanggan yang telah melakukan janji servis di Bengkel Dika Motor</p>
+    </section>
+
+    <!-- Daftar Janji Servis -->
+    <section class="jadwal-container">
+        <div class="booking-header">
+            <p style="color:#b0b8c1; margin:0;">📋 Daftar pelanggan yang telah melakukan janji servis di Bengkel Dika Motor</p>
+            <button class="booking-btn" id="bookingBtn">📅 Buat Janji Servis</button>
+        </div>
+
+        <div class="jadwal-table-wrap">
+            <table class="jadwal-table" id="appointmentTable">
+                <tr>
+                    <th>No</th>
+                    <th>Nama</th>
+                    <th>Tanggal Servis</th>
+                    <th>Keluhan</th>
+                    <th>Status</th>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination"></div>
+    </section>
+
+    <!-- Modal Form Janji Servis -->
+    <div class="modal-booking" id="bookingModal">
+        <div class="modal-card">
+            <button class="modal-close" id="modalClose" aria-label="Tutup">&times;</button>
+            <h2>📅 <span>Janji Servis</span></h2>
+            <p class="modal-sub">Isi formulir di bawah untuk booking servis di Bengkel Dika Motor</p>
+
+            <form class="booking-form" id="bookingForm">
+                <label for="bk_nama">Nama</label>
+                <input type="text" id="bk_nama" placeholder="Nama lengkap Anda" required>
+
+                <label for="bk_telepon">Telepon</label>
+                <input type="tel" id="bk_telepon" placeholder="Contoh: 081234567890" required>
+
+                <label for="bk_tanggal">Tanggal Servis</label>
+                <input type="date" id="bk_tanggal" required>
+
+                <label for="bk_keluhan">Keluhan (opsional)</label>
+                <textarea id="bk_keluhan" placeholder="Contoh: motor brebet saat gas dibuka"></textarea>
+
+                <div class="msg" id="bookingMsg"></div>
+
+                <button type="submit" class="btn-submit" id="bookingSubmit">Kirim Janji Servis</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer start -->
+    <footer>
+        <div class="socials">
+            <a href="#"><i data-feather="instagram"></i></a>
+            <a href="#"><i data-feather="twitter"></i></a>
+            <a href="#"><i data-feather="facebook"></i></a>
+        </div>
+
+        <div class="links">
+            <a href="index.html#home">Home</a>
+            <a href="index.html#about">Tentang Kami</a>
+            <a href="index.html#products">Produk</a>
+            <a href="janji-servis.html">Janji Servis</a>
+            <a href="index.html#contact">Kontak</a>
+            <a href="ai.html">AI Mekanik</a>
+        </div>
+
+        <div class="credit">
+            <p>Created by <a href="">DikaMotor</a>. | &copy; 2025.</p>
+        </div>
+    </footer>
+    <!-- Footer end -->
+
+    <!-- Feather Icons -->
+    <script>
+        feather.replace();
+    </script>
+
+    <!-- Hamburger menu -->
+    <script src="js/script.js"></script>
+
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        function formatTanggal(t) {
+            if (!t) return '-';
+            const [y, m, d] = String(t).slice(0, 10).split('-');
+            if (!y || !m || !d) return t;
+            const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${d} ${bulan[parseInt(m) - 1]} ${y}`;
+        }
+
+        function badgeStatus(a) {
+            // status yang diubah admin (selesai/diproses/batal) ditampilkan apa adanya
+            if (a.status === 'selesai') return '<span class="badge selesai">Selesai</span>';
+            if (a.status === 'diproses') return '<span class="badge diproses">Diproses</span>';
+            if (a.status === 'batal') return '<span class="badge batal">Batal</span>';
+
+            // selain itu (terjadwal) tetap otomatis berdasarkan tanggal
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tgl = new Date(String(a.tanggal).slice(0, 10) + 'T00:00:00');
+            if (tgl < today) return '<span class="badge selesai">Selesai</span>';
+            if (tgl.getTime() === today.getTime()) return '<span class="badge hari-ini">Hari Ini</span>';
+            return '<span class="badge terjadwal">Terjadwal</span>';
+        }
+
+        async function loadAppointments(page = 1) {
+            try {
+                const response = await fetch('http://localhost:3000/appointments');
+                if (!response.ok) throw new Error('Gagal memuat data');
+                const appointments = await response.json();
+
+                const totalPages = Math.max(1, Math.ceil(appointments.length / itemsPerPage));
+                currentPage = Math.min(page, totalPages);
+                const start = (currentPage - 1) * itemsPerPage;
+                const paginated = appointments.slice(start, start + itemsPerPage);
+
+                const table = document.getElementById('appointmentTable');
+                table.innerHTML = `
+                <tr>
+                    <th>No</th>
+                    <th>Nama</th>
+                    <th>Tanggal Servis</th>
+                    <th>Keluhan</th>
+                    <th>Status</th>
+                </tr>
+                ${paginated.length === 0 ? `
+                <tr><td colspan="5" class="kosong">Belum ada janji servis. Yuk booking lewat <a href="ai.html" style="color:#fbbf24;">AI Mekanik</a>! 😊</td></tr>
+                ` : paginated.map((a, i) => `
+                <tr>
+                    <td>${start + i + 1}</td>
+                    <td>${a.nama}</td>
+                    <td>${formatTanggal(a.tanggal)}</td>
+                    <td>${a.keluhan || '-'}</td>
+                    <td>${badgeStatus(a)}</td>
+                </tr>
+                `).join('')}
+                `;
+
+                renderPagination(totalPages);
+            } catch (err) {
+                console.error('Gagal memuat data:', err);
+                document.getElementById('appointmentTable').innerHTML = `
+                <tr><td colspan="5" class="kosong">⚠️ Gagal memuat data. Pastikan server berjalan (node server.js).</td></tr>`;
+            }
+        }
+
+        function renderPagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+
+                if (i === currentPage) btn.classList.add('active');
+
+                btn.addEventListener('click', () => loadAppointments(i));
+
+                pagination.appendChild(btn);
+            }
+        }
+
+        loadAppointments();
+
+        // ====== MODAL BOOKING JANJI SERVIS ======
+        const bookingModal = document.getElementById('bookingModal');
+        const bookingBtn = document.getElementById('bookingBtn');
+        const modalClose = document.getElementById('modalClose');
+        const bookingForm = document.getElementById('bookingForm');
+        const bookingMsg = document.getElementById('bookingMsg');
+        const bookingSubmit = document.getElementById('bookingSubmit');
+
+        function openBookingModal() {
+            bookingForm.reset();
+            bookingMsg.className = 'msg';
+            bookingMsg.textContent = '';
+            const today = new Date().toISOString().slice(0, 10);
+            document.getElementById('bk_tanggal').min = today;
+            bookingModal.classList.add('active');
+            document.getElementById('bk_nama').focus();
+        }
+
+        function closeBookingModal() {
+            bookingModal.classList.remove('active');
+        }
+
+        bookingBtn.addEventListener('click', openBookingModal);
+        modalClose.addEventListener('click', closeBookingModal);
+
+        bookingModal.addEventListener('click', (e) => {
+            if (e.target === bookingModal) closeBookingModal();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && bookingModal.classList.contains('active')) closeBookingModal();
+        });
+
+        bookingForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            bookingMsg.className = 'msg';
+            bookingMsg.textContent = '';
+
+            const payload = {
+                nama: document.getElementById('bk_nama').value.trim(),
+                telepon: document.getElementById('bk_telepon').value.trim(),
+                tanggal: document.getElementById('bk_tanggal').value,
+                keluhan: document.getElementById('bk_keluhan').value.trim() || null
+            };
+
+            if (!/^[0-9+\s-]{9,15}$/.test(payload.telepon)) {
+                bookingMsg.className = 'msg error';
+                bookingMsg.textContent = 'Nomor telepon tidak valid. Contoh: 081234567890.';
+                return;
+            }
+            if (!payload.tanggal) {
+                bookingMsg.className = 'msg error';
+                bookingMsg.textContent = 'Tanggal servis wajib diisi.';
+                return;
+            }
+
+            bookingSubmit.disabled = true;
+            bookingSubmit.textContent = 'Mengirim...';
+
+            try {
+                const response = await fetch('http://localhost:3000/appointments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (!response.ok) throw new Error(result.message || 'Gagal membuat janji servis');
+
+                bookingMsg.className = 'msg success';
+                bookingMsg.textContent = '✅ ' + result.message + '! Data Anda sudah tercatat.';
+                bookingSubmit.disabled = false;
+                bookingSubmit.textContent = 'Kirim Janji Servis';
+                bookingForm.reset();
+                loadAppointments();
+                setTimeout(closeBookingModal, 2500);
+            } catch (err) {
+                console.error('Gagal kirim:', err);
+                bookingMsg.className = 'msg error';
+                bookingMsg.textContent = '⚠️ ' + err.message;
+                bookingSubmit.disabled = false;
+                bookingSubmit.textContent = 'Kirim Janji Servis';
+            }
+        });
+    </script>
+</body>
+
+</html>

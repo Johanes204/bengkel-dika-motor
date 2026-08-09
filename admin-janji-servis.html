@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Janji Servis | Admin Dika Motor</title>
+    <link rel="stylesheet" href="css/admin.css?v=2">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="logo">
+            <a href="admin-janji-servis.html">Dika<span>Motor</span><span class="badge">Admin</span></a>
+        </div>
+
+        <div class="user-area">
+            <span class="hello">Halo, <strong id="adminName">Admin</strong> 👋</span>
+            <button class="btn btn-danger" id="logoutBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigasi -->
+    <nav class="admin-nav">
+        <a href="product.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            Input Produk
+        </a>
+        <a href="admin-janji-servis.html" class="active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            Janji Servis
+        </a>
+    </nav>
+
+    <!-- Judul halaman -->
+    <div class="page-title">
+        <h1>📅 Daftar Janji Servis</h1>
+        <p>Semua pelanggan yang telah melakukan booking servis di Bengkel Dika Motor</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats" id="statsRow">
+        <div class="stat-card">
+            <div class="icon blue">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M22 17h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2z"></path>
+                    <path d="M9 17H6a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2z"></path>
+                    <path d="M22 7h-3a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
+                    <path d="M9 7H6a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h3a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path>
+                </svg>
+            </div>
+            <div>
+                <div class="value" id="statTotal">0</div>
+                <div class="label">Total Janji</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon green">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M20 6L9 17l-5-5"></path>
+                </svg>
+            </div>
+            <div>
+                <div class="value" id="statTerjadwal">0</div>
+                <div class="label">Terjadwal</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon yellow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            </div>
+            <div>
+                <div class="value" id="statHariIni">0</div>
+                <div class="label">Hari Ini</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="icon gray">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                </svg>
+            </div>
+            <div>
+                <div class="value" id="statSelesai">0</div>
+                <div class="label">Selesai</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabel -->
+    <div class="card">
+        <h2>🗂 Riwayat Janji Servis</h2>
+
+        <div class="table-wrap">
+            <table id="appointmentTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama</th>
+                        <th>Telepon</th>
+                        <th>Tanggal Servis</th>
+                        <th>Keluhan</th>
+                        <th>Status</th>
+                        <th>Dibuat Pada</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <script>
+        // ===== Cek login admin =====
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        // ===== Nama Admin =====
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminName = localStorage.getItem('adminName') || 'Admin';
+            document.getElementById('adminName').textContent = adminName;
+        });
+
+        // ===== Logout =====
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm("Yakin ingin logout?")) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('adminName');
+                window.location.href = "login.html";
+            }
+        });
+
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        function formatTanggal(t) {
+            if (!t) return '-';
+            const [y, m, d] = String(t).slice(0, 10).split('-');
+            if (!y || !m || !d) return t;
+            const bulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return `${d} ${bulan[parseInt(m) - 1]} ${y}`;
+        }
+
+        function badgeStatus(a) {
+            return `<select class="status-select status-${a.status}" onchange="updateStatus(${a.id}, this.value)">
+                <option value="terjadwal" ${a.status === 'terjadwal' ? 'selected' : ''}>Terjadwal</option>
+                <option value="diproses" ${a.status === 'diproses' ? 'selected' : ''}>Diproses</option>
+                <option value="selesai" ${a.status === 'selesai' ? 'selected' : ''}>Selesai</option>
+                <option value="batal" ${a.status === 'batal' ? 'selected' : ''}>Batal</option>
+            </select>`;
+        }
+
+        // Ubah status janji servis
+        async function updateStatus(id, status) {
+            try {
+                const response = await fetch(`http://localhost:3000/appointments/${id}/status`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Gagal mengubah status');
+                loadAppointments(currentPage);
+            } catch (err) {
+                console.error('Gagal ubah status:', err);
+                alert('Gagal mengubah status: ' + err.message);
+                loadAppointments(currentPage);
+            }
+        }
+
+        function renderStats(appointments) {
+            let total = appointments.length;
+            let terjadwal = 0, hariIni = 0, selesai = 0, batal = 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            appointments.forEach(a => {
+                const tgl = new Date(String(a.tanggal).slice(0, 10) + 'T00:00:00');
+                if (tgl.getTime() === today.getTime()) hariIni++;
+                if (a.status === 'selesai') selesai++;
+                else if (a.status === 'batal') batal++;
+                else if (a.status === 'diproses') terjadwal++;
+                else terjadwal++;
+            });
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statTerjadwal').textContent = terjadwal;
+            document.getElementById('statHariIni').textContent = hariIni;
+            document.getElementById('statSelesai').textContent = selesai;
+        }
+
+        async function loadAppointments(page = 1) {
+            try {
+                const response = await fetch('http://localhost:3000/admin/appointments');
+                if (!response.ok) throw new Error('Gagal memuat data');
+                const appointments = await response.json();
+
+                renderStats(appointments);
+
+                const totalPages = Math.max(1, Math.ceil(appointments.length / itemsPerPage));
+                currentPage = Math.min(page, totalPages);
+                const start = (currentPage - 1) * itemsPerPage;
+                const paginated = appointments.slice(start, start + itemsPerPage);
+
+                const tbody = document.querySelector('#appointmentTable tbody');
+                tbody.innerHTML = paginated.length === 0 ? `
+                <tr class="empty-row"><td colspan="7">Belum ada janji servis.</td></tr>
+                ` : paginated.map(a => `
+                <tr>
+                    <td>${a.id}</td>
+                    <td>${a.nama}</td>
+                    <td>${a.telepon}</td>
+                    <td>${formatTanggal(a.tanggal)}</td>
+                    <td>${a.keluhan || '-'}</td>
+                    <td>${badgeStatus(a)}</td>
+                    <td>${formatTanggal(a.created_at)}</td>
+                </tr>
+                `).join('');
+
+                renderPagination(totalPages);
+            } catch (err) {
+                console.error('Gagal memuat data:', err);
+                document.querySelector('#appointmentTable tbody').innerHTML = `
+                <tr class="empty-row"><td colspan="7">⚠️ Gagal memuat data. Pastikan server berjalan (node server.js).</td></tr>`;
+            }
+        }
+
+        function renderPagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+
+                if (i === currentPage) btn.classList.add('active');
+
+                btn.addEventListener('click', () => loadAppointments(i));
+
+                pagination.appendChild(btn);
+            }
+        }
+
+        loadAppointments();
+    </script>
+</body>
+
+</html>

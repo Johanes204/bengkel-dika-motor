@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Produk | Admin Dika Motor</title>
+    <link rel="stylesheet" href="css/admin.css?v=2">
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="logo">
+            <a href="admin-janji-servis.html">Dika<span>Motor</span><span class="badge">Admin</span></a>
+        </div>
+
+        <div class="user-area">
+            <span class="hello">Halo, <strong id="adminName">Admin</strong> 👋</span>
+            <button class="btn btn-danger" id="logoutBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigasi -->
+    <nav class="admin-nav">
+        <a href="product.html" class="active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            Input Produk
+        </a>
+        <a href="admin-janji-servis.html">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+            Janji Servis
+        </a>
+    </nav>
+
+    <!-- Judul halaman -->
+    <div class="page-title">
+        <h1>📦 Kelola Produk</h1>
+        <p>Tambah, ubah, atau hapus produk yang ditampilkan di website</p>
+    </div>
+
+    <!-- Form produk -->
+    <div class="card">
+        <h2>➕ Tambah / Edit Produk</h2>
+
+        <form id="productForm" class="admin-form" enctype="multipart/form-data">
+            <div>
+                <label for="name_product">Nama Produk</label>
+                <input type="text" name="name_product" id="name_product" placeholder="Contoh: Oli Mesin Matic 0.8L" required>
+            </div>
+
+            <div>
+                <label for="price_product">Harga (Rp)</label>
+                <input type="number" name="price_product" id="price_product" placeholder="Contoh: 45000" required>
+            </div>
+
+            <div class="full">
+                <label for="img_product">Gambar Produk</label>
+                <input type="file" name="img_product" id="img_product" accept="image/*">
+            </div>
+
+            <div class="full">
+                <label for="detail_product">Deskripsi Produk</label>
+                <input type="text" name="detail_product" id="detail_product" placeholder="Deskripsi singkat produk">
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="btnSave">💾 Simpan Produk</button>
+                <button type="button" class="btn btn-danger" id="btnCancel" style="display:none;">Batal Edit</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Daftar produk -->
+    <div class="card">
+        <h2>🗂 Daftar Produk</h2>
+
+        <div class="table-wrap">
+            <table id="productTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama Produk</th>
+                        <th>Gambar</th>
+                        <th>Deskripsi</th>
+                        <th>Harga</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <script>
+        // ===== Nama Admin =====
+        document.addEventListener('DOMContentLoaded', () => {
+            const adminName = localStorage.getItem('adminName') || 'Admin';
+            document.getElementById('adminName').textContent = adminName;
+        });
+
+        // ===== Logout =====
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            if (confirm("Yakin ingin logout?")) {
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('adminName');
+                window.location.href = "login.html";
+            }
+        });
+
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        const rupiah = (n) => new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(Number(n) || 0);
+
+        // Muat produk dengan pagination
+        async function loadProducts(page = 1) {
+            try {
+                const response = await fetch('http://localhost:3000/products');
+                const products = await response.json();
+
+                const totalPages = Math.max(1, Math.ceil(products.length / itemsPerPage));
+                currentPage = Math.min(page, totalPages);
+
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                const paginatedProducts = products.slice(start, end);
+
+                const tbody = document.querySelector('#productTable tbody');
+                tbody.innerHTML = paginatedProducts.length === 0 ? `
+                <tr class="empty-row"><td colspan="6">Belum ada produk. Tambahkan lewat form di atas.</td></tr>
+                ` : paginatedProducts.map(c => `
+                <tr>
+                    <td>${c.id_product}</td>
+                    <td>${c.name_product}</td>
+                    <td><img src="http://localhost:3000/img/produk-oli/${c.img_product}" alt="${c.name_product}"></td>
+                    <td>${c.detail_product || '-'}</td>
+                    <td>${rupiah(c.price_product)}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editProduct(${c.id_product}, '${c.name_product.replace(/'/g, "\\'")}', '${(c.detail_product || '').replace(/'/g, "\\'")}', ${c.price_product})">✏️ Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteProduct(${c.id_product})">🗑 Hapus</button>
+                    </td>
+                </tr>
+                `).join('');
+
+                renderPagination(totalPages);
+            } catch (err) {
+                console.error('Gagal memuat data:', err);
+                document.querySelector('#productTable tbody').innerHTML = `
+                <tr class="empty-row"><td colspan="6">⚠️ Gagal memuat data. Pastikan server berjalan (node server.js).</td></tr>`;
+            }
+        }
+
+        // Render pagination angka dengan indikator aktif
+        function renderPagination(totalPages) {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+
+                if (i === currentPage) btn.classList.add('active');
+
+                btn.addEventListener('click', () => loadProducts(i));
+
+                pagination.appendChild(btn);
+            }
+        }
+
+        // Hapus produk
+        function deleteProduct(id) {
+            if (!confirm("Yakin ingin menghapus produk ini?")) return;
+
+            fetch(`http://localhost:3000/products/${id}`, {
+                method: 'DELETE'
+            })
+                .then(res => res.json())
+                .then(result => {
+                    alert(result.message);
+                    loadProducts(currentPage);
+                })
+                .catch(err => console.error('Gagal hapus produk:', err));
+        }
+
+        // Edit produk
+        function editProduct(id, name, detail, price) {
+            const form = document.getElementById('productForm');
+            form.name_product.value = name;
+            form.detail_product.value = detail;
+            form.price_product.value = price;
+            form.dataset.editId = id;
+
+            document.getElementById('btnCancel').style.display = 'inline-flex';
+            document.getElementById('btnSave').textContent = '💾 Simpan Perubahan';
+            form.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Batal edit
+        document.getElementById('btnCancel').addEventListener('click', function () {
+            const form = document.getElementById('productForm');
+            form.reset();
+            delete form.dataset.editId;
+            this.style.display = 'none';
+            document.getElementById('btnSave').textContent = '💾 Simpan Produk';
+        });
+
+        // Simpan produk
+        document.getElementById('productForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const editId = this.dataset.editId;
+
+            try {
+                let url = 'http://localhost:3000/addProducts';
+                let method = 'POST';
+
+                if (editId) {
+                    url = `http://localhost:3000/products/${editId}`;
+                    method = 'PUT';
+                }
+
+                const response = await fetch(url, { method, body: formData });
+                const result = await response.json();
+                alert(result.message);
+
+                this.reset();
+                delete this.dataset.editId;
+                document.getElementById('btnCancel').style.display = 'none';
+                document.getElementById('btnSave').textContent = '💾 Simpan Produk';
+
+                loadProducts(currentPage);
+            } catch (err) {
+                console.error('Gagal:', err);
+                alert('Terjadi kesalahan.');
+            }
+        });
+
+        loadProducts();
+    </script>
+</body>
+
+</html>

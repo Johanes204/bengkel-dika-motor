@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login | Dika Motor</title>
+
+    <link rel="stylesheet" href="css/login.css?v=2">
+    <script src="js/login.js" defer></script>
+</head>
+
+<body>
+
+    <!-- Dekorasi latar belakang -->
+    <div class="bg-blob b1"></div>
+    <div class="bg-blob b2"></div>
+
+    <a href="index.html" class="back-home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        Kembali ke Website
+    </a>
+
+    <div class="container">
+
+        <!-- Brand -->
+        <div class="brand">
+            <h1>Dika<span>Motor</span></h1>
+            <span class="badge-admin">Admin Panel</span>
+        </div>
+
+        <!-- FORM LOGIN -->
+        <div class="form-box active" id="login-form">
+            <h2>Login</h2>
+            <p class="sub">Masuk untuk mengelola bengkel</p>
+
+            <form id="loginForm">
+                <div class="input-group">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <input type="text" name="username_admin" id="username_admin" placeholder="Username" autocomplete="username" required>
+                </div>
+
+                <div class="input-group">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <input type="password" name="password_admin" id="password_admin" placeholder="Password" autocomplete="current-password" required>
+                    <button type="button" class="toggle-pwd" data-target="password_admin" aria-label="Lihat password">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="msg" id="loginMsg"></div>
+
+                <button type="submit" class="btn-submit" id="loginBtn">Login</button>
+
+                <p>Belum punya akun? <a href="#" onclick="showForm('register-form')">Register di sini</a></p>
+            </form>
+        </div>
+
+        <!-- FORM REGISTER -->
+        <div class="form-box" id="register-form">
+            <h2>Register</h2>
+            <p class="sub">Buat akun admin baru</p>
+
+            <form id="registerForm">
+                <div class="input-group">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <input type="text" name="username_admin" id="reg_username_admin" placeholder="Username" autocomplete="username" required>
+                </div>
+
+                <div class="input-group">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    <input type="email" name="email_admin" id="reg_email_admin" placeholder="Email" autocomplete="email" required>
+                </div>
+
+                <div class="input-group">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <input type="password" name="password_admin" id="reg_password_admin" placeholder="Password" autocomplete="new-password" required>
+                    <button type="button" class="toggle-pwd" data-target="reg_password_admin" aria-label="Lihat password">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="msg" id="registerMsg"></div>
+
+                <button type="submit" class="btn-submit" id="registerBtn">Register</button>
+
+                <p>Sudah punya akun? <a href="#" onclick="showForm('login-form')">Login di sini</a></p>
+            </form>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
