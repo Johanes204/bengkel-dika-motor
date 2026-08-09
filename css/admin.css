@@ -1,0 +1,524 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary: #278fcb;
+    --primary-dark: #17689e;
+    --accent: #fbbf24;
+    --accent-hover: #f59e0b;
+    --bg: #0f1420;
+    --bg-light: #181f2a;
+    --surface: #232b3e;
+    --text: #f3f4f6;
+    --text-muted: #b0b8c1;
+    --danger: #dc3545;
+    --green: #22c55e;
+    --gray: #6b7280;
+    --radius: 14px;
+    --shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, var(--bg) 0%, var(--bg-light) 100%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+}
+
+/* ===== Header admin ===== */
+.admin-header {
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: rgba(35, 43, 62, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
+    padding: 14px 22px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+}
+
+.admin-header .logo a {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+}
+
+.admin-header .logo span {
+    color: var(--accent);
+}
+
+.admin-header .logo .badge {
+    display: inline-block;
+    margin-left: 10px;
+    vertical-align: middle;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    background: rgba(39, 143, 203, 0.15);
+    border: 1px solid rgba(39, 143, 203, 0.4);
+    color: #7dd3fc;
+    padding: 3px 12px;
+    border-radius: 50px;
+}
+
+.admin-header .user-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.admin-header .user-area .hello {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.admin-header .user-area .hello strong {
+    color: var(--text);
+    font-weight: 600;
+}
+
+/* ===== Tombol ===== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    border: none;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(39, 143, 203, 0.3);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #0f1420;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: rgba(220, 53, 69, 0.15);
+    border: 1px solid rgba(220, 53, 69, 0.4);
+    color: #fca5a5;
+}
+
+.btn-danger:hover {
+    background: var(--danger);
+    color: #fff;
+    transform: translateY(-2px);
+}
+
+.btn-sm {
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+}
+
+/* ===== Navigasi tab ===== */
+.admin-nav {
+    max-width: 1200px;
+    margin: 0 auto 22px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-nav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    background: rgba(35, 43, 62, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    transition: all 0.25s;
+}
+
+.admin-nav a svg {
+    width: 17px;
+    height: 17px;
+}
+
+.admin-nav a:hover {
+    color: var(--text);
+    border-color: rgba(39, 143, 203, 0.4);
+    transform: translateY(-2px);
+}
+
+.admin-nav a.active {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(39, 143, 203, 0.3);
+}
+
+/* ===== Judul halaman ===== */
+.page-title {
+    max-width: 1200px;
+    margin: 0 auto 20px;
+}
+
+.page-title h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.page-title p {
+    color: var(--text-muted);
+    font-size: 0.88rem;
+    margin-top: 4px;
+}
+
+/* ===== Stats cards ===== */
+.stats {
+    max-width: 1200px;
+    margin: 0 auto 22px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+}
+
+.stat-card {
+    background: rgba(35, 43, 62, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow);
+    transition: transform 0.25s;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-card .icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-card .icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+.stat-card .icon.blue { background: rgba(39, 143, 203, 0.15); color: #7dd3fc; }
+.stat-card .icon.green { background: rgba(34, 197, 94, 0.15); color: #86efac; }
+.stat-card .icon.yellow { background: rgba(251, 191, 36, 0.15); color: var(--accent); }
+.stat-card .icon.gray { background: rgba(107, 114, 128, 0.2); color: #d1d5db; }
+
+.stat-card .value {
+    font-size: 1.45rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+.stat-card .label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+/* ===== Kartu konten ===== */
+.card {
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    background: rgba(35, 43, 62, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+}
+
+.card h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ===== Form admin ===== */
+.admin-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 720px;
+    margin: 0 auto;
+}
+
+.admin-form .full {
+    grid-column: 1 / -1;
+}
+
+.admin-form label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.admin-form input[type="text"],
+.admin-form input[type="number"],
+.admin-form input[type="file"] {
+    width: 100%;
+    padding: 12px 15px;
+    background: rgba(15, 20, 32, 0.7);
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.admin-form input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(39, 143, 203, 0.12);
+}
+
+.admin-form input::file-selector-button {
+    background: rgba(39, 143, 203, 0.15);
+    color: #7dd3fc;
+    border: 1px solid rgba(39, 143, 203, 0.4);
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-right: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.admin-form .form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 6px;
+}
+
+/* ===== Tabel ===== */
+.table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 560px;
+}
+
+table th,
+table td {
+    padding: 13px 16px;
+    text-align: center;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.88rem;
+}
+
+table th {
+    background: rgba(23, 104, 158, 0.55);
+    font-weight: 600;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+table tbody tr {
+    transition: background 0.2s;
+}
+
+table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+table img {
+    max-height: 70px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.empty-row td {
+    color: var(--text-muted);
+    padding: 36px !important;
+}
+
+/* ===== Badge ===== */
+.badge {
+    display: inline-block;
+    padding: 4px 13px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.badge.blue { background: rgba(39, 143, 203, 0.15); color: #7dd3fc; border: 1px solid rgba(39, 143, 203, 0.3); }
+.badge.green { background: rgba(34, 197, 94, 0.15); color: #86efac; border: 1px solid rgba(34, 197, 94, 0.3); }
+.badge.yellow { background: rgba(251, 191, 36, 0.15); color: var(--accent); border: 1px solid rgba(251, 191, 36, 0.3); }
+.badge.gray { background: rgba(107, 114, 128, 0.2); color: #d1d5db; border: 1px solid rgba(107, 114, 128, 0.3); }
+
+/* ===== Status select (janji servis) — dibuat mirip tombol pill ===== */
+.status-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    min-width: 132px;
+    padding: 7px 32px 7px 14px;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    outline: none;
+    background-color: var(--surface, #232b3e);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    color: var(--text, #f3f4f6);
+    transition: transform 0.15s, box-shadow 0.2s, filter 0.2s, border-color 0.2s;
+}
+
+.status-select:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.2);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.status-select:active {
+    transform: translateY(0) scale(0.97);
+}
+
+.status-select:focus-visible {
+    box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.35);
+}
+
+.status-select option {
+    background: #1f2937;
+    color: #f3f4f6;
+    font-weight: 500;
+}
+
+.status-terjadwal { background-color: rgba(34, 197, 94, 0.15); color: #86efac; border-color: rgba(34, 197, 94, 0.35); }
+.status-diproses { background-color: rgba(39, 143, 203, 0.15); color: #7dd3fc; border-color: rgba(39, 143, 203, 0.35); }
+.status-selesai { background-color: rgba(107, 114, 128, 0.2); color: #d1d5db; border-color: rgba(107, 114, 128, 0.35); }
+.status-batal { background-color: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: rgba(239, 68, 68, 0.35); }
+
+/* ===== Pagination ===== */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+}
+
+.pagination button {
+    min-width: 38px;
+    height: 38px;
+    background: rgba(15, 20, 32, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 9px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.pagination button:hover {
+    color: var(--text);
+    border-color: rgba(39, 143, 203, 0.5);
+    transform: translateY(-2px);
+}
+
+.pagination button.active {
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    color: #0f1420;
+    border-color: transparent;
+    font-weight: 700;
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(251, 191, 36, 0.35);
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    body {
+        padding: 14px;
+    }
+
+    .admin-header {
+        padding: 12px 16px;
+    }
+
+    .admin-form {
+        grid-template-columns: 1fr;
+    }
+
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-header .user-area {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

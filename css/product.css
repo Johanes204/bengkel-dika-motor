@@ -1,0 +1,210 @@
+:root {
+    --primary: #278fcb;
+    --primary-dark: #17689e;
+    --accent: #fbbf24;
+    --bg: #181f2a;
+    --bg-light: #232b3e;
+    --text: #f3f4f6;
+    --text-muted: #b0b8c1;
+    --shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(120deg, var(--bg), var(--bg-light) 100%);
+    margin: 0;
+    padding: 20px;
+}
+
+h2 {
+    text-align: center;
+    color: var(--text);
+}
+
+/* ===== Form Styling ===== */
+form#productForm {
+    max-width: 450px;
+    margin: 20px auto;
+    background: var(--bg-light);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    color: var(--text);
+}
+
+form#productForm input[type="text"],
+form#productForm input[type="file"],
+form#productForm input[type="number"] {
+    background: #1c2333;
+    border: 1px solid var(--primary);
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    color: var(--text);
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+form#productForm input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 6px var(--accent);
+    outline: none;
+}
+
+form#productForm button {
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border: none;
+    border-radius: 2rem;
+    font-weight: 600;
+    padding: 0.9rem 2.5rem;
+    color: #fff;
+    box-shadow: var(--shadow);
+    transition: background 0.3s, transform 0.2s;
+    margin-top: 1rem;
+    display: inline-block;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+form#productForm button:hover {
+    background: linear-gradient(90deg, var(--accent), var(--primary));
+    transform: translateY(-2px) scale(1.04);
+}
+
+/* ===== Table Styling ===== */
+table {
+    width: 100%;
+    margin-top: 30px;
+    border-collapse: collapse;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-light);
+    box-shadow: var(--shadow);
+}
+
+table th, table td {
+    padding: 14px;
+    text-align: center;
+    color: var(--text);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+table th {
+    background: var(--primary-dark);
+    color: var(--text);
+    font-weight: 600;
+}
+
+table tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+table img {
+    max-height: 80px;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ===== Button Styling ===== */
+.action-buttons {
+    display: flex;
+    flex-direction: column; /* tombol vertikal */
+    align-items: center;    /* di tengah kolom */
+    gap: 8px;
+}
+
+button.edit {
+    background: var(--accent);
+    color: #000;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.3s ease;
+    width: 80px;
+}
+
+button.edit:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
+}
+
+button.delete {
+    background: #dc3545;
+    color: #fff;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.3s ease;
+    width: 80px;
+}
+
+button.delete:hover {
+    background: #b02a37;
+    transform: translateY(-2px);
+}
+
+button.edit svg,
+button.delete svg {
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* ===== Pagination Styling ===== */
+#pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#pagination button {
+    background: var(--primary);
+    color: #fff;
+    padding: 6px 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: transform 0.2s ease, background 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+#pagination button:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+}
+
+/* Halaman aktif (indikator page sekarang) */
+#pagination button.active {
+    background: var(--accent);
+    color: #000;
+    font-weight: 700;
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+}
+
+
+/* ===== Responsive ===== */
+@media (max-width: 600px) {
+    table, table th, table td {
+        font-size: 12px;
+        padding: 10px;
+    }
+
+    .action-buttons {
+        flex-direction: row; /* di HP tombol jadi horizontal */
+        gap: 5px;
+    }
+
+    table img {
+        max-height: 60px;
+    }
+}
