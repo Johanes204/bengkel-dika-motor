@@ -51,10 +51,10 @@
             <div class="session-list" id="sessionList"></div>
 
             <div class="sidebar-footer">
-                <p>⚡ Agent dengan tool:
-                    <span class="tool-tag">cariProduk</span>
-                    <span class="tool-tag">tambahPelanggan</span>
-                    <span class="tool-tag">buatJanjiServis</span>
+                <p>⚡ Kata kunci yang dipahami AI:
+                    <span class="tool-tag">harga/cari produk</span>
+                    <span class="tool-tag">daftar pelanggan</span>
+                    <span class="tool-tag">janji servis</span>
                 </p>
             </div>
 
@@ -327,7 +327,14 @@
             if (el) el.remove();
         }
 
+        const TOOL_LABELS = {
+            'cariProduk': 'Mencari harga sparepart',
+            'tambahPelanggan': 'Mendaftarkan pelanggan',
+            'buatJanjiServis': 'Membuat janji servis'
+        };
+
         function showToolBadge(name, status, result) {
+            const label = TOOL_LABELS[name] || name;
             let badge = document.getElementById('tool-badge-' + name);
             if (!badge) {
                 badge = document.createElement('div');
@@ -336,10 +343,10 @@
                 chatBox.appendChild(badge);
             }
             if (status === 'start') {
-                badge.innerHTML = `<span class="tool-spinner"></span> Menjalankan <code>${name}</code>...`;
+                badge.innerHTML = `<span class="tool-spinner"></span> ${label}...`;
                 badge.className = 'tool-badge running';
             } else {
-                badge.innerHTML = `<span class="tool-ok">✓</span> <code>${name}</code> selesai`;
+                badge.innerHTML = `<span class="tool-ok">✓</span> ${label} selesai`;
                 badge.className = 'tool-badge done';
                 if (result) {
                     const details = document.createElement('details');
