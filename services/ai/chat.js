@@ -8,16 +8,19 @@ const {
 } = require("./config");
 const {
     deteksiIntent,
+    deteksiIntentAdmin,
     ekstrakKeywordProduk,
     ekstrakKeywordBagian,
-    ekstrakParamPelanggan
+    ekstrakParamPelanggan,
+    ekstrakParamUbahProduk
 } = require("./intents");
 const { getSession } = require("./session");
 const { cariRelevan, formatDatasetContext } = require("./rag");
-const { buildSystemPrompt } = require("./prompts");
-const { TOOL_DEFINITIONS, executeTool } = require("./tools");
+const { buildSystemPrompt, buildAdminSystemPrompt } = require("./prompts");
+const { TOOL_DEFINITIONS, ADMIN_TOOL_DEFINITIONS, executeTool } = require("./tools");
 const { checkNativeTools, callOllama, bersihkanJawabanAkhir } = require("./ollamaClient");
 const { cariInternet, formatHasilPencarian } = require("./webSearch");
+const { parsePeriode } = require("../../tools/exportJanjiServis");
 
 // ====== ORKESTRATOR UTAMA ======
 // Alur lengkap satu pesan user:
@@ -28,12 +31,13 @@ const { cariInternet, formatHasilPencarian } = require("./webSearch");
 // 5. Agent loop (model + tools)
 // 6. Forced tool routing jika model tidak memanggil tool
 // 7. Formatting pass untuk jawaban akhir
-async function chat(sessionId, question, onEvent = () => {}) {
+async function chat(sessionId, question, onEvent = () => {}, options = {}) {
     if (!question || !question.trim()) {
         onEvent({ type: "token", content: "Silakan ketik pertanyaan Anda." });
         return "Silakan ketik pertanyaan Anda.";
     }
 
+    const isAdmin = options.mode === "admin";
     const session = getSession(sessionId);
     const isNewChat = session.messages.length === 0;
 
@@ -48,17 +52,17 @@ async function chat(sessionId, question, onEvent = () => {}) {
         .map(m => m.content);
     const pertanyaanGabungan = [...pesanUserLalu, question].join(" ");
 
-    let intent = deteksiIntent(question);
+    let intent = isAdmin ? deteksiIntentAdmin(question) : deteksiIntent(question);
 
     // Follow-up biaya/kira-kira setelah percakapan → arahkan ke alur estimasi biaya
-    if (intent === "konsultasi" && pesanUserLalu.length > 0 &&
+    if (!isAdmin && intent === "konsultasi" && pesanUserLalu.length > 0 &&
         /(biaya|ongkos|harga|harganya|berapa|perkira|estimasi|tarif|kena)/i.test(question) &&
         !/(produk|oli|ban|busi|aki|spare|onderdil)/i.test(question)) {
         intent = "estimasiBiaya";
     }
 
     // Follow-up harga setelah pencarian produk → arahkan ke cariProduk
-    if (intent === "konsultasi" && pesanUserLalu.length > 0 &&
+    if (!isAdmin && intent === "konsultasi" && pesanUserLalu.length > 0 &&
         /(harga|harganya|berapa|beli)/i.test(question) &&
         ekstrakKeywordProduk(question)) {
         intent = "cariProduk";
@@ -67,7 +71,8 @@ async function chat(sessionId, question, onEvent = () => {}) {
     // Tolak topik di luar otomotif (politik, hiburan, makanan, dll).
     // Pertanyaan otomotif/umum tetap diproses — model boleh menjawab dari data
     // bengkel, pengetahuan umum, maupun hasil pencarian internet.
-    const diLuarTopik = intent === "konsultasi" &&
+    // (Khusus mode admin, blok ini dilewati karena admin bertanya soal pengelolaan bengkel)
+    const diLuarTopik = !isAdmin && intent === "konsultasi" &&
         nonAutomotivePatterns.some(p => p.test(question)) &&
         !keywordMotor.some(kw => question.toLowerCase().includes(kw));
     if (diLuarTopik) {
@@ -81,8 +86,9 @@ async function chat(sessionId, question, onEvent = () => {}) {
 
 // Gunakan pertanyaan gabungan (topik awal + pertanyaan lanjutan)
     // supaya RAG tetap menemukan data kerusakan yang relevan.
-    const hasilRelevan = cariRelevan(pertanyaanGabungan);
-    const datasetContext = (intent === "konsultasi" || intent === "estimasiBiaya")
+    // (Mode admin tidak butuh RAG kerusakan / pencarian internet)
+    const hasilRelevan = isAdmin ? [] : cariRelevan(pertanyaanGabungan);
+    const datasetContext = !isAdmin && (intent === "konsultasi" || intent === "estimasiBiaya")
         ? formatDatasetContext(hasilRelevan)
         : "";
 
@@ -90,7 +96,7 @@ async function chat(sessionId, question, onEvent = () => {}) {
     // Jika data bengkel tidak cukup relevan, cari jawaban pendukung dari internet
     // supaya AI bisa menjawab seputar permasalahan motor secara lebih lengkap.
     let webContext = "";
-    if ((intent === "konsultasi" || intent === "estimasiBiaya") && hasilRelevan.length < 2) {
+    if (!isAdmin && (intent === "konsultasi" || intent === "estimasiBiaya") && hasilRelevan.length < 2) {
         try {
             const hasilWeb = await cariInternet(pertanyaanGabungan.slice(0, 250), 5);
             webContext = formatHasilPencarian(hasilWeb);
@@ -127,6 +133,59 @@ async function chat(sessionId, question, onEvent = () => {}) {
         return result;
     }
 
+    // ====== PATH DETERMINISTIK ADMIN ======
+    // Untuk ekspor Excel & ubah produk, eksekusi langsung TANPA model:
+    // jawaban pasti ringkas ("Berikut file excelnya..."), tidak panjang lebar,
+    // dan tidak bergantung keandalan model dalam merangkai kalimat.
+    if (isAdmin && (intent === "exportJanjiServis" || intent === "ubahProduk")) {
+        let hasilTool = null;
+        let pesan = null;
+
+        if (intent === "exportJanjiServis") {
+            onEvent({ type: "tool_start", name: "exportJanjiServis" });
+            try {
+                // Dukung permintaan periode: "data servis per minggu/bulan/tahun",
+                // "minggu lalu", "bulan juni 2026", "tahun 2026", dst.
+                const periode = parsePeriode(question);
+                hasilTool = await executeTool("exportJanjiServis", periode ? { periode } : {});
+                onEvent({ type: "tool_done", name: "exportJanjiServis", result: hasilTool });
+                pesan = `Berikut file Excel data janji servis yang Anda minta:
+
+${hasilTool}
+
+📥 Klik tombol **Unduh Excel** di atas untuk menyimpan filenya.`;
+            } catch (err) {
+                pesan = "⚠️ Gagal membuat file Excel: " + (err.message || "terjadi kesalahan.");
+            }
+        } else {
+            const data = ekstrakParamUbahProduk(question);
+            const punyaTarget = !!(data.id || data.nama);
+            const punyaPerubahan = !!(data.name_product || data.detail_product || data.price_product);
+            // Panggil tool bila admin menyebut target (id/nama) ATAU nilai perubahan.
+            // Tool sendiri yang menindaklanjuti bila salah satunya belum lengkap
+            // (misal: minta produk mana yang diubah, atau perubahan apa yang dilakukan).
+            if (punyaTarget || punyaPerubahan) {
+                onEvent({ type: "tool_start", name: "ubahProduk" });
+                try {
+                    hasilTool = await executeTool("ubahProduk", data);
+                    onEvent({ type: "tool_done", name: "ubahProduk", result: hasilTool });
+                    pesan = "Berikut hasilnya:\n\n" + hasilTool;
+                } catch (err) {
+                    pesan = "⚠️ Gagal mengubah produk: " + (err.message || "terjadi kesalahan.");
+                }
+            }
+            // Parameter belum lengkap → lanjut ke agent loop (model) di bawah
+        }
+
+        if (pesan) {
+            session.messages.push({ role: "user", content: question }, { role: "assistant", content: pesan });
+            if (!session.title) session.title = question.slice(0, 40);
+            session.lastActive = Date.now();
+            onEvent({ type: "token", content: pesan });
+            return pesan;
+        }
+    }
+
     // Riwayat ringkas: HANYA pertanyaan user (dipotong), bukan jawaban AI panjang,
 // supaya model tidak mengulang jawaban sebelumnya (terutama di pertanyaan biaya).
     const riwayat = session.messages
@@ -135,10 +194,12 @@ async function chat(sessionId, question, onEvent = () => {}) {
         .map(m => `User: ${m.content.slice(0, 200)}`)
         .join("\n");
 
-    const systemPrompt = buildSystemPrompt({ intent, datasetContext, webContext, isNewChat, riwayat });
+    const sysPrompt = isAdmin
+        ? buildAdminSystemPrompt({ isNewChat, riwayat })
+        : buildSystemPrompt({ intent, datasetContext, webContext, isNewChat, riwayat });
 
     const messages = [
-        { role: "system", content: systemPrompt },
+        { role: "system", content: sysPrompt },
         // Untuk pertanyaan biaya: JANGAN kirim riwayat percakapan penuh agar model
         // tidak mengulang penjelasan sebelumnya. Konteks topik (gejala yang dibahas
         // user di awal) sudah ada dalam "riwayat" di system prompt.
@@ -155,20 +216,24 @@ async function chat(sessionId, question, onEvent = () => {}) {
     // ====== FORMATTING PASS ======
     // Setelah tool dieksekusi, minta model merangkum hasil tool menjadi jawaban
     // yang natural, rapi, dan tanpa istilah internal.
+    const namaToolInternal = isAdmin
+        ? "cariProduk, buatJanjiServis, tambahPelanggan, exportJanjiServis, ubahProduk"
+        : "cariProduk, buatJanjiServis, tambahPelanggan";
+
     const runFormattingPass = async (results) => {
         const fmt = results.map(r => `— Tool ${r.name}: ${r.result}`).join("\n\n");
         const isBiaya = intent === "estimasiBiaya";
         const instrBiaya = `
 untuk perkiraan biaya servis/perbaikan. MULAI langsung dengan kalimat perkiraan biaya (misal: "Perkiraan biaya servis untuk masalah ... sekitar Rp... sampai Rp..."). Jika hasil tool berisi harga sparepart, gunakan harga part tersebut ditambah estimasi jasa (Rp50.000-100.000) sebagai dasar hitung, dan tampilkan sebagai *perkiraan*, bukan kepastian. Jika harga part tidak tersedia atau tidak relevan, pakai pengetahuan umum tarif servis motor dan harga pasar umum untuk rentang estimasi, tetap bertanda *perkiraan*. JANGAN menyarankan sparepart yang tidak relevan dengan kerusakan yang dibahas (misal shock, lampu, bodi padahal yang dibahas mesin/CVT) — abaikan produk tak relevan dari hasil tool. Dilarang menyebut nama tool apapun (cariProduk, buatJanjiServis, tambahPelanggan). Kalimat penawaran "silakan datang/pesan janji servis" HANYA boleh ditulis SEKALI di paling akhir jawaban sebagai kalimat penutup.`;
         const formatMessages = [
-            { role: "system", content: buildSystemPrompt({ intent, datasetContext, webContext, isNewChat, riwayat }) },
+            { role: "system", content: sysPrompt },
             { role: "user", content: question },
             { role: "assistant", content: "Saya akan mencari informasi tersebut." },
             { role: "user", content: `Hasil tool:\n${fmt}\n\nBuatkan jawaban yang natural dan informatif kepada user berdasarkan hasil tool di atas${instrBiaya}.
 
 ATURAN WAJIB:
 1. JANGAN menambahkan informasi, produk, harga, atau pernyataan yang TIDAK ada di hasil tool.
-2. Jangan menyebut kata "tool", "database", "dataset", atau nama tool internal (cariProduk, buatJanjiServis, tambahPelanggan).
+2. Jangan menyebut kata "tool", "database", "dataset", atau nama tool internal (${namaToolInternal}).
 3. JANGAN mengulang jawaban sebelumnya dan JANGAN mengulang pertanyaan user yang sudah dijawab — langsung jawab lanjutannya.
 4. Untuk booking servis / pendaftaran pelanggan: cukup konfirmasi bahwa data sudah tercatat beserta detailnya.
 5. Untuk pencarian produk: tampilkan nama, harga, dan detail produk.
@@ -192,6 +257,8 @@ ATURAN WAJIB:
     // Untuk estimasiBiaya TIDAK dijalankan di sini: jawaban perkiraan biaya dibuat
     // lewat jalur tunggal di FORCED TOOL ROUTING agar cuma SATU aliran jawaban
     // (tidak ada teks lanjutan/duplikat beberapa detik kemudian).
+    const toolDefinitions = isAdmin ? ADMIN_TOOL_DEFINITIONS : TOOL_DEFINITIONS;
+
     for (let i = 0; intent !== "estimasiBiaya" && i < MAX_LOOP; i++) {
         const body = {
             model: MODEL,
@@ -203,10 +270,10 @@ ATURAN WAJIB:
             // estimasiBiaya: TIDAK pakai tool sama sekali — langsung jawab perkiraan
             // biaya supaya tidak ada JSON tool call / badge tool yang muncul.
             if (intent !== "konsultasi" && intent !== "estimasiBiaya") {
-                body.tools = TOOL_DEFINITIONS;
+                body.tools = toolDefinitions;
             }
             body.stream = true;
-            if (i === 0 && intent === "cariProduk") {
+            if (i === 0 && !isAdmin && intent === "cariProduk") {
                 body.tool_choice = { type: "function", function: { name: "cariProduk" } };
             }
         } else {
@@ -249,6 +316,22 @@ ATURAN WAJIB:
     // deterministik lalu minta model merangkum hasil tool.
     if (toolResults.length === 0 && intent !== "konsultasi") {
         pendingTool = intent;
+
+        // ----- TOOL KHUSUS ADMIN -----
+        if (isAdmin && pendingTool === "exportJanjiServis") {
+            const result = await executeTool("exportJanjiServis", {});
+            toolResults.push({ name: "exportJanjiServis", result });
+        } else if (isAdmin && pendingTool === "ubahProduk") {
+            const data = ekstrakParamUbahProduk(question);
+            const punyaTarget = !!(data.id || data.nama);
+            const punyaPerubahan = !!(data.name_product || data.detail_product || data.price_product);
+            if (punyaTarget || punyaPerubahan) {
+                const result = await executeTool("ubahProduk", data);
+                toolResults.push({ name: "ubahProduk", result });
+            } else {
+                finalAnswer = "Saya bantu perbarui data produknya. Sebutkan produk mana (nama atau ID) yang ingin diubah beserta perubahannya, contoh: \"ubah deskripsi produk oli matic menjadi oli sintetis 0.8L\" atau \"ubah harga produk dengan id 3 menjadi 50000\".";
+            }
+        }
 
         if (pendingTool === "estimasiBiaya") {
             // Gabungkan pertanyaan sebelumnya + pertanyaan sekarang untuk konteks
@@ -312,7 +395,11 @@ ATURAN WAJIB:
     }
 
     if (toolResults.length > 0) {
-        finalAnswer = await runFormattingPass(toolResults);
+        // Admin: langsung pakai hasil tool sebagai jawaban (ringkas, tanpa
+        // model merangkai ulang jadi kalimat panjang).
+        finalAnswer = isAdmin
+            ? "Berikut hasilnya:\n\n" + toolResults.map(r => r.result).join("\n\n")
+            : await runFormattingPass(toolResults);
     }
 
     if (!finalAnswer || finalAnswer === "" || finalAnswer === "Maaf, tidak bisa memproses permintaan.") {
@@ -320,6 +407,10 @@ ATURAN WAJIB:
             finalAnswer = FORM_JANJI_SERVIS;
         } else if (intent === "tambahPelanggan") {
             finalAnswer = "Tentu, saya bantu daftarkan sebagai pelanggan. Mohon lengkapi: nama dan nomor telepon Anda. Contoh: daftarkan saya nama Budi, telepon 081234567890.";
+        } else if (isAdmin && intent === "exportJanjiServis") {
+            finalAnswer = "Saya bisa buatkan file Excel berisi data janji servis. Cukup tulis: \"ekspor data janji servis ke Excel\".";
+        } else if (isAdmin && intent === "ubahProduk") {
+            finalAnswer = "Saya bisa bantu ubah data produk (nama, deskripsi, atau harga). Sebutkan produknya (nama atau ID) beserta perubahannya, contoh: \"ubah deskripsi produk oli matic dengan id 3 menjadi oli sintetis 0.8L\" atau \"ubah harga produk id 3 menjadi Rp 50000\".";
         } else {
             finalAnswer = "Maaf, tidak bisa memproses permintaan.";
         }
@@ -327,7 +418,9 @@ ATURAN WAJIB:
 
     finalAnswer = bersihkanJawabanAkhir(finalAnswer);
 
-    if (!native) {
+    // Admin: hasil tool selalu ditampilkan sebagai pesan akhir walau model
+    // streaming (native), supaya jawaban "berikut file excelnya" pasti muncul.
+    if (!native || isAdmin) {
         onEvent({ type: "token", content: finalAnswer });
     }
 

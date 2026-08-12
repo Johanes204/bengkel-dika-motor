@@ -53,6 +53,18 @@ body {
     color: var(--accent);
 }
 
+.logo .logo-badge {
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.4);
+    border-radius: 6px;
+    padding: 2px 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
 .menu a {
     color: var(--text-muted);
     text-decoration: none;
@@ -585,6 +597,25 @@ body {
     color: var(--green);
     font-weight: 700;
     flex-shrink: 0;
+}
+
+.tool-download-btn {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-left: auto;
+}
+
+.tool-download-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
 }
 
 .tool-result {

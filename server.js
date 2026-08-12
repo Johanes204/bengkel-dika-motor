@@ -9,6 +9,7 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use('/img', express.static(path.join(__dirname, 'img')));
+app.use('/admin/exports', express.static(path.join(__dirname, 'data', 'exports')));
 app.use(bodyParser.json()); // untuk menerima JSON
 app.use(bodyParser.urlencoded({ extended: true })); // untuk form biasa
 
@@ -219,9 +220,9 @@ function sseSend(res, event, data) {
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
-// Chat streaming (SSE) — dipakai UI AI agent
+// Chat streaming (SSE) — dipakai UI AI agent (user) dan AI admin
 app.post('/chat/stream', async (req, res) => {
-    const { message, sessionId } = req.body;
+    const { message, sessionId, mode } = req.body;
     if (!message || !message.trim()) {
         return res.status(400).json({ answer: 'Pesan tidak boleh kosong.' });
     }
@@ -235,7 +236,7 @@ app.post('/chat/stream', async (req, res) => {
     sseSend(res, 'session', { sessionId: sid });
 
     try {
-        await aiService.chat(sid, message, (ev) => sseSend(res, ev.type, ev));
+        await aiService.chat(sid, message, (ev) => sseSend(res, ev.type, ev), { mode: mode || 'user' });
         sseSend(res, 'done', { sessionId: sid });
     } catch (err) {
         console.error('AI Error:', err);
@@ -247,12 +248,12 @@ app.post('/chat/stream', async (req, res) => {
 
 // Chat non-streaming (fallback / API biasa)
 app.post('/chat', async (req, res) => {
-    const { message, sessionId } = req.body;
+    const { message, sessionId, mode } = req.body;
     if (!message) return res.status(400).json({ answer: 'Pesan tidak boleh kosong.' });
 
     const sid = sessionId || crypto.randomUUID();
     try {
-        const answer = await aiService.chat(sid, message);
+        const answer = await aiService.chat(sid, message, undefined, { mode: mode || 'user' });
         res.json({ answer, sessionId: sid });
     } catch (err) {
         console.error('AI Error:', err);

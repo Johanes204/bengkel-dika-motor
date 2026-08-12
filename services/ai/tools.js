@@ -1,6 +1,8 @@
 const cariProduk = require("../../tools/cariProduk");
 const tambahPelanggan = require("../../tools/tambahPelanggan");
 const buatJanjiServis = require("../../tools/buatJanjiServis");
+const exportJanjiServis = require("../../tools/exportJanjiServis");
+const ubahProduk = require("../../tools/ubahProduk");
 
 // ====== DEFINISI TOOL (untuk OpenAI-compatible tool calling) ======
 const TOOL_DEFINITIONS = [
@@ -56,10 +58,51 @@ const TOOL_DEFINITIONS = [
     }
 ];
 
+// ====== DEFINISI TOOL ADMIN (hanya untuk mode admin) ======
+const ADMIN_TOOL_DEFINITIONS = [
+    {
+        type: "function",
+        function: {
+            name: "exportJanjiServis",
+            description: "Ekspor data pelanggan yang melakukan janji servis/booking servis ke file Excel. Bisa dibatasi periode: mingguan/bulanan/tahunan, misal 'minggu ini', 'minggu lalu', 'bulan ini', 'bulan juni', 'tahun 2026'. Panggil tool ini setiap kali admin meminta unduh/download/tarik/ekspor/rekap/cetak data janji servis atau booking servis ke Excel/file.",
+            parameters: {
+                type: "object",
+                properties: {
+                    periode: {
+                        type: "string",
+                        description: "Periode data (opsional): 'mingguan', 'bulanan', 'tahunan', atau disertai rincian seperti 'minggu lalu', 'bulan juni 2026', 'tahun 2026'. Kosongkan jika semua data."
+                    }
+                },
+                required: []
+            }
+        }
+    },
+    {
+        type: "function",
+        function: {
+            name: "ubahProduk",
+            description: "Ubah/perbarui data produk di database Bengkel Dika Motor: nama produk, deskripsi/detail produk, atau harga produk. Panggil saat admin minta ubah/edit/ganti/perbarui data produk, deskripsi produk, atau harga produk. Jika admin menyebut ID produk, isi id; jika hanya nama, isi nama produk yang dicari.",
+            parameters: {
+                type: "object",
+                properties: {
+                    id: { type: "number", description: "ID produk yang ingin diubah (jika diketahui)" },
+                    nama: { type: "string", description: "Nama produk yang dicari untuk diubah, contoh: 'oli matic'" },
+                    name_product: { type: "string", description: "Nama produk baru (opsional)" },
+                    detail_product: { type: "string", description: "Deskripsi/detail produk baru (opsional)" },
+                    price_product: { type: "string", description: "Harga produk baru, angka saja tanpa Rp (opsional)" }
+                },
+                required: []
+            }
+        }
+    }
+];
+
 const TOOL_HANDLERS = {
     cariProduk,
     tambahPelanggan,
-    buatJanjiServis
+    buatJanjiServis,
+    exportJanjiServis,
+    ubahProduk
 };
 
 async function executeTool(toolName, args) {
@@ -74,6 +117,7 @@ async function executeTool(toolName, args) {
 
 module.exports = {
     TOOL_DEFINITIONS,
+    ADMIN_TOOL_DEFINITIONS,
     TOOL_HANDLERS,
     executeTool
 };

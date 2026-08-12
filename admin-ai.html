@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>AI Admin | Dika Motor</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Feather -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <link rel="stylesheet" href="css/ai.css?v=5">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Buka sidebar">
+            <i data-feather="menu"></i>
+        </button>
+
+        <a href="admin-janji-servis.html" class="logo">
+            Dika<span>Motor</span><span class="logo-badge">Admin</span>
+        </a>
+
+        <div class="menu">
+            <a href="admin-janji-servis.html">Janji Servis</a>
+            <a href="product.html">Kelola Produk</a>
+        </div>
+
+    </nav>
+
+    <div class="container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+
+            <div class="sidebar-header">
+                <h2>AI Admin</h2>
+                <button class="new-chat-btn" id="newChatBtn">
+                    <i data-feather="plus"></i> Chat Baru
+                </button>
+            </div>
+
+            <div class="session-list" id="sessionList"></div>
+
+            <div class="sidebar-footer">
+                <p>⚡ Kata kunci yang dipahami AI:
+                    <span class="tool-tag">export data janji servis</span>
+                    <span class="tool-tag">data per minggu/bulan/tahun</span>
+                    <span class="tool-tag">ubah/edit/ganti deskripsi produk</span>
+                    <span class="tool-tag">ubah harga produk / pakai ID produk</span>
+                    <span class="tool-tag">ubahin harganya, set harga Rp, turunkan harga</span>
+                </p>
+            </div>
+
+        </aside>
+
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Chat -->
+        <section class="chat-area">
+
+            <div class="chat-header">
+
+                <div class="avatar">🛠️</div>
+
+                <div class="header-info">
+
+                    <h2>AI Asisten Admin Dika Motor</h2>
+
+                    <span class="status" id="statusDot">Online</span>
+
+                </div>
+
+                <div class="header-model" id="modelBadge">
+                    <span class="model-dot"></span> gemma3:4b
+                </div>
+
+            </div>
+
+            <div class="chat-box" id="chatBox"></div>
+
+            <!-- Suggestion chips (tampil saat percakapan kosong) -->
+            <div class="suggestions" id="suggestions">
+                <button class="chip" data-q="tolong ekspor data janji servis ke file excel">
+                    📥 Ekspor data janji servis ke Excel
+                </button>
+                <button class="chip" data-q="ekspor data janji servis bulan ini">
+                    📅 Data janji servis bulan ini
+                </button>
+                <button class="chip" data-q="ekspor data janji servis minggu ini">
+                    🗓 Data janji servis minggu ini
+                </button>
+                <button class="chip" data-q="ubah deskripsi produk oli matic menjadi oli sintetis 0.8L yang lembut di mesin">
+                    ✏️ Ubah deskripsi produk
+                </button>
+                <button class="chip" data-q="ubah harga produk oli matic menjadi 45000">
+                    💰 Ubah harga produk
+                </button>
+                <button class="chip" data-q="ubah harga produk dengan id 3 menjadi 55000 dan deskripsinya jadi oli sintetis full synthetic">
+                    🔢 Ubah harga &amp; deskripsi pakai ID produk
+                </button>
+            </div>
+
+            <div class="chat-input">
+
+                <textarea id="message" rows="1" placeholder="Minta AI melakukan sesuatu, misal: ekspor data janji servis ke Excel, ubah deskripsi produk X menjadi ..., atau ubah harga produk id 3 menjadi 45000..." autocomplete="off"></textarea>
+
+                <button id="sendBtn" aria-label="Kirim">
+
+                    <i data-feather="send"></i>
+
+                </button>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <script>
+        // ===== Cek login admin =====
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        feather.replace()
+
+        // ====== STATE ======
+        const chatBox = document.getElementById('chatBox');
+        const messageInput = document.getElementById('message');
+        const sendBtn = document.getElementById('sendBtn');
+        const sessionListEl = document.getElementById('sessionList');
+        const suggestionsEl = document.getElementById('suggestions');
+        const modelBadge = document.getElementById('modelBadge');
+
+        const API_BASE = 'http://localhost:3000';
+        const STORAGE_KEY = 'dika_motor_ai_sessions_admin';
+        let sessions = loadSessions();
+        let currentSessionId = null;
+        let currentSession = null;
+        let busy = false;
+        let botRawText = '';
+
+        // ====== SESSION (localStorage) ======
+        function loadSessions() {
+            try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function saveSessions() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions.slice(0, 30)));
+        }
+
+        function newSession() {
+            currentSessionId = crypto.randomUUID();
+            currentSession = { id: currentSessionId, title: 'Percakapan baru', createdAt: Date.now() };
+            sessions.unshift(currentSession);
+            saveSessions();
+            renderSessionList();
+            clearChatBox();
+            showSuggestions(true);
+            modelBadge.style.display = 'none';
+        }
+
+        function selectSession(id) {
+            const s = sessions.find(x => x.id === id);
+            if (!s || busy) return;
+            currentSession = s;
+            currentSessionId = id;
+            renderSessionList();
+            showSuggestions(false);
+            chatBox.innerHTML = '';
+            modelBadge.style.display = 'flex';
+            addMessage('Mengambil riwayat percakapan...', 'system', false);
+            fetch(`${API_BASE}/chat/history?sessionId=${encodeURIComponent(id)}`)
+                .then(r => r.json())
+                .then(data => {
+                    chatBox.innerHTML = '';
+                    const msgs = data.messages || [];
+                    msgs.forEach(m => addMessage(m.content, m.role === 'user' ? 'user' : 'bot', true));
+                    if (msgs.length === 0) showSuggestions(true);
+                    closeSidebar();
+                })
+                .catch(() => {
+                    chatBox.innerHTML = '';
+                    addMessage('Gagal memuat riwayat (server tidak berjalan?).', 'bot', true);
+                    closeSidebar();
+                });
+        }
+
+        function deleteSession(id, ev) {
+            ev.stopPropagation();
+            if (busy) return;
+            sessions = sessions.filter(s => s.id !== id);
+            saveSessions();
+            fetch(`${API_BASE}/chat/reset`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId: id })
+            }).catch(() => {});
+            if (currentSessionId === id) newSession();
+            else renderSessionList();
+        }
+
+        function renderSessionList() {
+            sessionListEl.innerHTML = '';
+            sessions.forEach(s => {
+                const item = document.createElement('div');
+                item.className = 'session-item' + (s.id === currentSessionId ? ' active' : '');
+                item.onclick = () => selectSession(s.id);
+
+                const title = document.createElement('span');
+                title.className = 'session-title';
+                title.textContent = s.title || 'Percakapan baru';
+
+                const del = document.createElement('button');
+                del.className = 'session-delete';
+                del.innerHTML = '<i data-feather="trash-2"></i>';
+                del.onclick = (e) => deleteSession(s.id, e);
+
+                item.appendChild(title);
+                item.appendChild(del);
+                sessionListEl.appendChild(item);
+            });
+            if (sessions.length > 0) feather.replace();
+        }
+
+        // ====== UI UTIL ======
+        function addMessage(text, sender, noAnimate) {
+            const div = document.createElement('div');
+            div.className = sender === 'user' ? 'user-message' : 'bot-message';
+            if (sender === 'system') div.className = 'system-message';
+            div.innerHTML = renderMarkdown(text);
+            if (!noAnimate) div.classList.add('msg-enter');
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return div;
+        }
+
+        function renderMarkdown(text) {
+            const esc = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            const blocks = [];
+            const withoutBlocks = esc.replace(/```(\w*)\s*\n([\s\S]*?)```/g, (m, lang, code) => {
+                blocks.push({ lang, code });
+                return `@@FORMBLOCK${blocks.length - 1}@@`;
+            });
+
+            const withInline = withoutBlocks
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/^(\d+\.)\s/gm, '')
+                .replace(/^[-•]\s+/gm, '• ')
+                .replace(/\n/g, '<br>');
+
+            return withInline.replace(/@@FORMBLOCK(\d+)@@/g, (m, i) => {
+                const { lang, code } = blocks[Number(i)];
+                const trimmed = code.replace(/\s+$/, '');
+                const display = trimmed.replace(/\n/g, '<br>');
+                if (lang === 'form') {
+                    return `<div class="copy-block">
+                        <div class="copy-block-head">
+                            <span>📋 Formulir</span>
+                            <button type="button" class="copy-btn" onclick="copyText(this)">Salin</button>
+                        </div>
+                        <pre class="copy-block-body" data-copy="${trimmed.replace(/"/g, '&quot;')}">${display}</pre>
+                    </div>`;
+                }
+                return `<pre><code>${display}</code></pre>`;
+            });
+        }
+
+        function copyText(btn) {
+            const body = btn.closest('.copy-block').querySelector('.copy-block-body');
+            const text = body.dataset.copy || body.innerText;
+            const done = () => {
+                btn.textContent = '✓ Tersalin';
+                setTimeout(() => { btn.textContent = 'Salin'; }, 2000);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+            } else {
+                fallbackCopy(text, done);
+            }
+        }
+
+        function fallbackCopy(text, done) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            ta.remove();
+            done();
+        }
+
+        function showTyping() {
+            const div = document.createElement('div');
+            div.className = 'loading-indicator';
+            div.id = 'typingIndicator';
+            div.innerHTML = '<span></span><span></span><span></span>';
+            div.style.display = 'flex';
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function hideTyping() {
+            const el = document.getElementById('typingIndicator');
+            if (el) el.remove();
+        }
+
+        // ====== UNDUH FILE EXCEL ======
+        async function downloadExcel(url, filename) {
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error('Gagal mengambil file');
+                const blob = await res.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename || url.split('/').pop() || 'janji-servis.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+            } catch (err) {
+                alert('Gagal mengunduh file: ' + err.message);
+            }
+        }
+
+        const TOOL_LABELS = {
+            'cariProduk': 'Mencari harga sparepart',
+            'exportJanjiServis': 'Membuat file Excel data janji servis',
+            'ubahProduk': 'Memperbarui data produk'
+        };
+
+        function showToolBadge(name, status, result) {
+            const label = TOOL_LABELS[name] || name;
+            let badge = document.getElementById('tool-badge-' + name);
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.className = 'tool-badge';
+                badge.id = 'tool-badge-' + name;
+                chatBox.appendChild(badge);
+            }
+            if (status === 'start') {
+                badge.innerHTML = `<span class="tool-spinner"></span> ${label}...`;
+                badge.className = 'tool-badge running';
+            } else {
+                badge.innerHTML = `<span class="tool-ok">✓</span> ${label} selesai`;
+                badge.className = 'tool-badge done';
+
+                // Tombol unduh Excel untuk tool exportJanjiServis
+                if (name === 'exportJanjiServis') {
+                    const m = String(result || '').match(/\/admin\/exports\/[^\s]+/);
+                    const url = m ? API_BASE + m[0] : `${API_BASE}/admin/exports`;
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'tool-download-btn';
+                    btn.innerHTML = '📥 Unduh Excel';
+                    btn.onclick = () => downloadExcel(url, m ? m[0].split('/').pop() : 'janji-servis.xlsx');
+                    badge.appendChild(btn);
+                }
+
+                if (result) {
+                    const details = document.createElement('details');
+                    details.className = 'tool-result';
+                    const sum = document.createElement('summary');
+                    sum.textContent = 'Lihat hasil tool';
+                    const pre = document.createElement('div');
+                    pre.className = 'tool-result-content';
+                    pre.textContent = result;
+                    details.appendChild(sum);
+                    details.appendChild(pre);
+                    badge.appendChild(details);
+                }
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function showSuggestions(show) {
+            suggestionsEl.style.display = show ? 'flex' : 'none';
+        }
+
+        function clearChatBox() {
+            chatBox.innerHTML = '';
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('show');
+        }
+
+        // ====== SEND MESSAGE (SSE streaming) ======
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || busy) return;
+
+            botRawText = '';
+
+            if (!currentSessionId) newSession();
+            else showSuggestions(false);
+
+            if (currentSession.title === 'Percakapan baru') {
+                currentSession.title = message.slice(0, 40);
+                saveSessions();
+                renderSessionList();
+            }
+            modelBadge.style.display = 'flex';
+
+            addMessage(message, 'user');
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            busy = true;
+            sendBtn.disabled = true;
+            showTyping();
+
+            let botEl = null;
+            const ensureBotEl = () => {
+                if (!botEl) {
+                    hideTyping();
+                    botEl = addMessage('', 'bot');
+                }
+                return botEl;
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/chat/stream`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, sessionId: currentSessionId, mode: 'admin' })
+                });
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+
+                    let idx;
+                    while ((idx = buffer.indexOf('\n\n')) !== -1) {
+                        const rawEvent = buffer.slice(0, idx);
+                        buffer = buffer.slice(idx + 2);
+                        handleSSEEvent(rawEvent, ensureBotEl);
+                    }
+                }
+
+                hideTyping();
+                if (botEl && !botEl.textContent.trim()) botEl.remove();
+            } catch (err) {
+                hideTyping();
+                addMessage('⚠️ Gagal terhubung ke server AI. Pastikan `node server.js` sudah berjalan.', 'bot');
+            } finally {
+                busy = false;
+                sendBtn.disabled = false;
+                messageInput.focus();
+            }
+        }
+
+        function handleSSEEvent(rawEvent, ensureBotEl) {
+            const lines = rawEvent.split('\n');
+            let event = 'message';
+            let data = '';
+            for (const line of lines) {
+                if (line.startsWith('event: ')) event = line.slice(7).trim();
+                else if (line.startsWith('data: ')) data += line.slice(6).trim();
+            }
+            if (!data) return;
+
+            let payload;
+            try { payload = JSON.parse(data); } catch { return; }
+
+            switch (event) {
+                case 'token': {
+                    const botEl = ensureBotEl();
+                    botRawText += payload.content;
+                    botEl.innerHTML = renderMarkdown(botRawText);
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    break;
+                }
+                case 'tool_start':
+                    hideTyping();
+                    ensureBotEl();
+                    showToolBadge(payload.name, 'start');
+                    break;
+                case 'tool_done':
+                    showToolBadge(payload.name, 'done', payload.result);
+                    break;
+                case 'error':
+                    hideTyping();
+                    addMessage('⚠️ ' + (payload.message || 'Terjadi kesalahan.'), 'bot');
+                    break;
+            }
+        }
+
+        // ====== EVENTS ======
+        sendBtn.addEventListener('click', sendMessage);
+
+        // Auto-resize textarea + Enter = kirim, Shift+Enter = baris baru
+        function autoResize() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 140) + 'px';
+        }
+        messageInput.addEventListener('input', autoResize);
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        document.getElementById('newChatBtn').addEventListener('click', () => {
+            if (!busy) newSession();
+        });
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('show');
+        });
+        document.getElementById('sidebarOverlay').addEventListener('click', closeSidebar);
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                messageInput.value = chip.dataset.q;
+                sendMessage();
+            });
+        });
+
+        // ====== INIT ======
+        renderSessionList();
+        if (sessions.length > 0) {
+            selectSession(sessions[0].id);
+        } else {
+            newSession();
+        }
+    </script>
+
+</body>
+
+</html>

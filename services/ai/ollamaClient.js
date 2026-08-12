@@ -27,7 +27,7 @@ async function checkNativeTools() {
 }
 
 // ====== PARSING TOOL CALL (fallback non-native) ======
-const NAMA_TOOL_SAH = new Set(["cariProduk", "tambahPelanggan", "buatJanjiServis"]);
+const NAMA_TOOL_SAH = new Set(["cariProduk", "tambahPelanggan", "buatJanjiServis", "exportJanjiServis", "ubahProduk"]);
 
 function parseToolCall(text) {
     if (!text) return null;
